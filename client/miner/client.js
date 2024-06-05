@@ -1,21 +1,28 @@
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
+import Block from "./Block.js";
 
-const socket = io('ws://localhost:3000', {
-  autoConnect: false
-});
+export const initClient = (args) => {
 
-socket.connect();
+    const socket = io('http://localhost:3000');
 
-socket.on('welcome', (arg) => {
-  console.log(arg);
-  setTimeout(() => {
-    console.log('waiting...');
-  }, 500);
-});
+    socket.connect();
 
-console.log('Joining...');
+    socket.on('connect', () => {
+        socket.emit('joinToMine', {id: socket.id, name: args.username, rewards: 0 });
+        console.log(`Connected:`);
+        console.log(`Username: ${args.username} => Socket Id: ${socket.id}`);
+        console.log('Esperando para encontrar el próximo hash...');
+    });
 
-socket.emit('joinToMine', {id: socket.id, name: 'user2', rewards: 0 }, (response) => {
-  console.log('joining')
-  console.log(response.status);
-});
+    socket.on('startMining', async (data) => {
+        const block = new Block(data.timestamp, data.transactions, data.previousHash, data.difficulty);
+        const hash = await block.mineBlock();
+        if(hash) {
+            console.log('Hash encontrado: ', hash);
+            socket.emit('hashFound', hash);
+            console.log('Esperando para encontrar el próximo hash...')
+        } else {
+            console.log('Hash undefined, something went wrong..');
+        }
+    });
+}
