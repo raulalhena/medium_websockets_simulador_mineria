@@ -24,8 +24,6 @@ class Block {
     // PoW, difficulty = número de 0 que añadiremos al hash creado
     mineBlock() {
         while(this.hash.substring(0,this.difficulty) !== Array(this.difficulty + 1).join("0")){
-            console.log('substring difficulty ', this.hash.substring(0,this.difficulty))
-            console.log('array join ', Array(this.difficulty + 1).join("0"))
             this.nonce++;
             // console.log('nonce', this.nonce);
             this.hash = this.calculateHash();
